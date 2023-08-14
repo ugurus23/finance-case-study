@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ issuer.name }}</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+      function load(){
+        $(window).on('load', function () {
+          $('#loading').hide();
+        })
+      }
+      function log(){
+        $('#loading').hide();
+        document.getElementById('content').style.display= 'block' ;
+      }
+      setTimeout(log,1000);
+      $(document).ready(function(){
+        var $cells = $("td");
+        $("input").keydown(function(){});
+
+        $("input").keyup(function() {
+          var val = $.trim(this.value).toUpperCase();
+          if (val === "")
+              $cells.parent().show();
+          else {
+              $cells.parent().hide();
+              $cells.filter(function() {
+                  return -1 != $(this).text().toUpperCase().indexOf(val);
+              }).parent().show();
+          }
+        });
+      });
+    </script>
+    <style>
+      @import url("https://fonts.googleapis.com/css?family=Roboto+Mono:400,300,700");
+      body {
+        font-family: 'Roboto Mono', sans-serif !important;
+      }
+      .loader {
+        border: 16px solid #f3f3f3; /* Light grey */
+        border-top: 16px solid #3498db; /* Blue */
+        border-radius: 50%;
+        margin: auto;
+        width: 50%;
+        width: 120px;
+        height: 120px;
+        animation: spin 2s linear infinite;
+      }
+      .center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 10px;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      #content{
+        display: none;
+      }
+      .flex-parent-element {
+        display: flex;
+        width: 100%;
+      }
+      .flex-child-element {
+        flex: 1;
+        margin: 10px;
+      }
+      .flex-child-element:first-child {
+        margin-right: 20px;
+      }
+      table thead tr th.sort-asc:after {
+        content: "\25b4";
+      }
+      table thead tr th.sort-desc:after {
+        content: "\25be";
+      }
+      .row {
+        width: 100%;
+        margin: 0 auto;
+        display: flex;
+        justify-content: left; 
+      }
+      .block {
+        width: 45%;
+      }
+      .cellContainer {
+        width: 50%;
+        float: left;
+      }
+    </style>
+</head>
+<body>
+  <div id="loading" class = "center">
+    <div class="loader"></div>
+  </div>
+  <div id="content" class="m-3">
+    <a href="/"><h1>FCS</h1></a>
+    <h1>{{ issuer.name }}</h1>
+    <h5>{{ issuer.ticker }}</h5>
+    <div class="shadow p-4 mb-4 bg-white">
+      <ul class="nav nav-pills" id="pills-tab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="pills-managers-tab" data-bs-toggle="pill" data-bs-target="#pills-managers" type="button" role="tab" aria-controls="pills-managers" aria-selected="true">Data</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="pills-issuers-tab" data-bs-toggle="pill" data-bs-target="#pills-issuers" type="button" role="tab" aria-controls="pills-issuers" aria-selected="false">Analysis</button>
+        </li>
+      </ul>
+    </div>
+    <div class="tab-content" id="pills-tabContent">
+      <div class="tab-pane fade show active" id="pills-managers" role="tabpanel" aria-labelledby="pills-managers-tab">
+        <div class="shadow p-4 mb-4 bg-white">
+          <div class='flex-parent-element'>
+            <div class="form-outline mb-4 flex-child-element">
+              <input type="text" id="search" class="form-control" placeholder="Search for Fund Companies" aria-label="Search" />
+            </div>
+            <div class="form-outline mb-4 flex-child-element">
+              <div class="dropdown">
+                <button onClick="drop()" class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Select Quarter
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                  <span class="dropdown-item" onclick="myFunction('')">All Quarters</span>
+                  {% for quarter in quarters %}
+                  <span class="dropdown-item" onclick="myFunction('{{quarter}}')" href="#">{{quarter}}</span>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th scope="col">Fund Companies</th>
+                  <th scope="col">Value</th>
+                  <th scope="col">Shares</th>
+                  <th scope="col">Date Filed</th>
+                  <th scope="col">Quarter</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for position in positions %}
+                  <tr onclick="$('#loading').show(); window.location='/cik/{{ position.cik }}';">
+                    <td>{{ position.manager }}</td>
+                    <td>{{ position.value }}</td>
+                    <td>{{ position.shares }}</td>
+                    <td>{{ position.date }}</td>
+                    <td>{{ position.quarter }}</td>
+                  </tr>       
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="pills-issuers" role="tabpanel" aria-labelledby="pills-issuers-tab">
+        <h1 class ="ml-2 pb-4 cellContainer">{{quart}}</h1>
+        {% if quart == "All Quarters" %}
+        {% else %}
+        <div class="pb-4 dropdown cellContainer">
+          <h1 class ="ml-2">{{quartC}}</h1>
+          <button onClick="drop()" class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Compare With
+          </button>
+          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            {% for quarter in quarters %}
+            <span class="dropdown-item" onclick="compare('{{quart}}' , '{{quarter}}', '{{issuer.cusip}}')" href="#">{{quarter}}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        <div class="shadow  bg-white">
+          <div class="row">
+            <div class="block" id="myChart"></div>
+            {% if quartC == "" %}
+            {% else %}
+            <div class="block" id="compChart"></div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+        
+      </div>
+    </div>
+    
+  </div>
+  <script>
+    function myFunction(quarter) {
+      $(".dropdown-menu").toggle()
+      if(quarter == ''){
+        window.location="?all"
+      }else{
+        window.location='?q=' + quarter
+      }
+    }
+    function drop(){
+      $(".dropdown-menu").show()
+    }
+    function compare(quart, quarter, cusip) {
+      $(".dropdown-menu").toggle()
+      let newUrl = '/cusip/' + cusip  + '/?q=' + quart + '&c=' + quarter
+      window.location=newUrl
+    }
+  </script>
+  {{ shares_data|json_script:"shares_data" }}
+  {{ comp_data|json_script:"comp_data" }}
+  <script>
+    var shares_data = JSON.parse(document.getElementById('shares_data').textContent)
+    var comp_data = JSON.parse(document.getElementById('comp_data').textContent)
+
+    google.charts.load('current',{packages:['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+    function drawChart() {
+      
+      const data = google.visualization.arrayToDataTable(shares_data);
+
+      const options = {
+        title: '',
+        'is3D':true,
+        'width':600,
+        'height':500
+      };
+
+      const chart = new google.visualization.PieChart(document.getElementById('myChart'));
+      chart.draw(data, options);
+
+      if(Object.keys(comp_data).length != 0){
+        const data = google.visualization.arrayToDataTable(comp_data);
+        const compChart = new google.visualization.PieChart(document.getElementById('compChart'));
+        compChart.draw(data, options);
+      }
+      
+    }
+  </script>
+  <script>
+    function TableCellValue(row, index) {
+      return $(row).children("td").eq(index).text();
+    }
+    
+    function TableComparer(index) {
+      return function(a, b) {
+        var val_a = TableCellValue(a, index);
+        var val_b = TableCellValue(b, index);
+        var result = ($.isNumeric(val_a) && $.isNumeric(val_b)) ? val_a - val_b : val_a.toString().localeCompare(val_b);
+
+        return result;
+      }
+    }
+
+    $(document).on("click", "table thead tr th:not(.no-sort)", function() {
+      var table = $(this).parents("table");
+      var rows = $(this).parents("table").find("tbody tr").toArray().sort(TableComparer($(this).index()));
+      var dir = ($(this).hasClass("sort-asc")) ? "desc" : "asc";
+
+      if (dir == "desc") {
+        rows = rows.reverse();
+      }
+
+      for (var i = 0; i < rows.length; i++) {
+        table.append(rows[i]);
+      }
+
+      table.find("thead tr th").removeClass("sort-asc").removeClass("sort-desc");
+      $(this).removeClass("sort-asc").removeClass("sort-desc") .addClass("sort-" + dir);
+    });
+  </script>
+</body>
+</html>

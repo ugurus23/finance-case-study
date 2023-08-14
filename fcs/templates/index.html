@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Finance Case Study</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+      function load(){
+        $(window).on('load', function () {
+          $('#loading').hide();
+        })
+      }
+      function log(){
+        $('#loading').hide();
+        document.getElementById('content').style.display= 'block' ;
+      }
+      setTimeout(log,1000);
+      $(document).ready(function(){
+        var $cells = $("td");
+        $("input").keydown(function(){});
+
+        $("input").keyup(function() {
+          var val = $.trim(this.value).toUpperCase();
+          if (val === "")
+              $cells.parent().show();
+          else {
+              $cells.parent().hide();
+              $cells.filter(function() {
+                  return -1 != $(this).text().toUpperCase().indexOf(val);
+              }).parent().show();
+          }
+        });
+      });
+    </script>
+    <style>
+      @import url("https://fonts.googleapis.com/css?family=Roboto+Mono:400,300,700");
+      body {
+        font-family: 'Roboto Mono', sans-serif !important;
+      }
+      .loader {
+        border: 16px solid #f3f3f3; /* Light grey */
+        border-top: 16px solid #3498db; /* Blue */
+        border-radius: 50%;
+        margin: auto;
+        width: 50%;
+        width: 120px;
+        height: 120px;
+        animation: spin 2s linear infinite;
+      }
+      .center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 10px;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      #content{
+        display: none;
+      }
+      table thead tr th.sort-asc:after {
+        content: "\25b4";
+      }
+
+      table thead tr th.sort-desc:after {
+        content: "\25be";
+      }
+    </style>
+</head>
+<body>
+  <div id="loading" class = "center">
+    <div class="loader"></div>
+  </div>
+  <div id="content" class="m-3">
+    <a href="/"><h1>FCS</h1></a>
+    <div class="shadow p-4 mb-4 bg-white">
+      <ul class="nav nav-pills" id="pills-tab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="pills-managers-tab" data-bs-toggle="pill" data-bs-target="#pills-managers" type="button" role="tab" aria-controls="pills-managers" aria-selected="true">Fund Companies</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="pills-issuers-tab" data-bs-toggle="pill" data-bs-target="#pills-issuers" type="button" role="tab" aria-controls="pills-issuers" aria-selected="false">Securities</button>
+        </li>
+      </ul>
+    </div>
+    <div class="shadow p-4 mb-4 bg-white">
+      <div class="form-outline">
+        <input type="text" id="search" class="form-control" placeholder="Search for Fund Companies, Securities" aria-label="Search" />
+      </div>
+    </div>
+    <div class="tab-content" id="pills-tabContent">
+      <div class="tab-pane fade show active" id="pills-managers" role="tabpanel" aria-labelledby="pills-managers-tab">
+        <div class="shadow p-4 mb-4 bg-white">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Name</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for fund_company in fund_companies %}
+                  <tr onclick="$('#loading').show(); window.location='cik/{{ fund_company.cik_id }}';">
+                    <td scope="row">{{ fund_company.id }}</td>
+                    <td>{{ fund_company.name }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="pills-issuers" role="tabpanel" aria-labelledby="pills-issuers-tab">
+        <div class="shadow p-4 mb-4 bg-white">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Name</th>
+                  <th scope="col">Ticker</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for issuer in issuers %}
+                  <tr onclick="$('#loading').show(); window.location='cusip/{{ issuer.cusip }}';">
+                    <td scope="row">{{ issuer.id }}</td>
+                    <td>{{ issuer.name }}</td>
+                    <td>{{ issuer.ticker }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    function TableCellValue(row, index) {
+      return $(row).children("td").eq(index).text();
+    }
+    
+    function TableComparer(index) {
+      return function(a, b) {
+        var val_a = TableCellValue(a, index);
+        var val_b = TableCellValue(b, index);
+        var result = ($.isNumeric(val_a) && $.isNumeric(val_b)) ? val_a - val_b : val_a.toString().localeCompare(val_b);
+
+        return result;
+      }
+    }
+
+    $(document).on("click", "table thead tr th:not(.no-sort)", function() {
+      var table = $(this).parents("table");
+      var rows = $(this).parents("table").find("tbody tr").toArray().sort(TableComparer($(this).index()));
+      var dir = ($(this).hasClass("sort-asc")) ? "desc" : "asc";
+
+      if (dir == "desc") {
+        rows = rows.reverse();
+      }
+
+      for (var i = 0; i < rows.length; i++) {
+        table.append(rows[i]);
+      }
+
+      table.find("thead tr th").removeClass("sort-asc").removeClass("sort-desc");
+      $(this).removeClass("sort-asc").removeClass("sort-desc") .addClass("sort-" + dir);
+    });
+  </script>
+</body>
+</html>
